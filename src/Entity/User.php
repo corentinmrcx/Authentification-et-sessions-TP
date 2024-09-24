@@ -39,7 +39,7 @@ class User
         return $this->phone;
     }
 
-    public function findByCredentials(string $login, string $password): self{
+    public static function findByCredentials(string $login, string $password): self{
         $stmt = MyPdo::getInstance()-> prepare(
             <<<'SQL'
             SELECT id FROM users WHERE login = :login AND sha512pass = SHA2(:password, 512)
