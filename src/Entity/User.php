@@ -51,6 +51,6 @@ SQL);
         if ($res)
             return $res;
         else
-            throw new EntityNotFoundException();
+            throw new EntityNotFoundException("Aucun enregistrement trouvé !");
     }
 }
