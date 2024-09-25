@@ -33,7 +33,8 @@ class UserAuthentication
 HTML;
     }
 
-    public function logoutForm(string $action, string $text): string{
+    public function logoutForm(string $action, string $text): string
+    {
         $logout = self::LOGOUT_INPUT_NAME;
 
         return <<<HTML
@@ -43,13 +44,14 @@ HTML;
 HTML;
     }
 
-    public function logoutIfRequested(): void{
-        try{
+    public function logoutIfRequested(): void
+    {
+        try {
             if (isset($_POST[self::LOGOUT_INPUT_NAME])) {
                 Session::start();
                 unset($_SESSION[self::SESSION_KEY][self::SESSION_USER_KEY]);
             }
-        }catch (SessionException $e){
+        } catch (SessionException $e) {
         }
     }
 
@@ -64,7 +66,7 @@ HTML;
         try {
             $user = User::findByCredentials($login, $password);
 
-            $this -> setUser($user);
+            $this->setUser($user);
         } catch (EntityNotFoundException) {
             throw new AuthenticationException("Aucun utilisateur n'est trouvé !");
         }
@@ -75,14 +77,29 @@ HTML;
     /**
      * @throws SessionException
      */
-    public function setUser(User $user): void{
+    public function setUser(User $user): void
+    {
         $this->user = $user;
         Session::start();
         $_SESSION[self::SESSION_KEY][self::SESSION_USER_KEY] = $user;
     }
 
-    public function isUserConnected(): bool{
+    public function isUserConnected(): bool
+    {
         Session::start();
+
         return isset($_SESSION[self::SESSION_KEY][self::SESSION_USER_KEY]) && $_SESSION[self::SESSION_KEY][self::SESSION_USER_KEY] instanceof User;
+    }
+
+    protected function getUserFromSession(): User
+    {
+        Session::start();
+        try {
+            if (isset($_SESSION[self::SESSION_KEY][self::SESSION_USER_KEY]) && $_SESSION[self::SESSION_KEY][self::SESSION_USER_KEY] instanceof User) {
+                return $_SESSION[self::SESSION_KEY][self::SESSION_USER_KEY];
+            }
+        } catch (SessionException $e) {
+            throw new NotLoggedInException('Aucun utilisateur dans la session !');
+        }
     }
 }
