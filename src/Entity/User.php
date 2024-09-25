@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Entity;
@@ -9,8 +10,8 @@ use Entity\Exception\EntityNotFoundException;
 class User
 {
     private int $id;
-    private string $firstname;
-    private string $lastname;
+    private string $firstName;
+    private string $lastName;
     private string $login;
     private string $phone;
 
@@ -21,12 +22,12 @@ class User
 
     public function getFirstname(): string
     {
-        return $this->firstname;
+        return $this->firstName;
     }
 
     public function getLastname(): string
     {
-        return $this->lastname;
+        return $this->lastName;
     }
 
     public function getLogin(): string
@@ -39,18 +40,22 @@ class User
         return $this->phone;
     }
 
-    public static function findByCredentials(string $login, string $password): self{
-        $stmt = MyPdo::getInstance()-> prepare(
+    /**
+     * @throws EntityNotFoundException
+     */
+    public static function findByCredentials(string $login, string $password): User
+    {
+        $stmt = MyPdo::getInstance()->prepare(
             <<<'SQL'
-            SELECT id FROM users WHERE login = :login AND sha512pass = SHA2(:password, 512)
+            SELECT id, lastName, firstName, login, phone FROM user WHERE login = :login AND sha512pass = SHA2(:password, 512)
 SQL);
-        $stmt -> execute([":login" => $login, ":password" => $password]);
+        $stmt->execute([':login' => $login, ':password' => $password]);
 
-        $res = $stmt->fetchObject();
+        $user = $stmt->fetchObject(User::class);
+        if (false === $user) {
+            throw new EntityNotFoundException("L'utilisateur n'existe pas !");
+        }
 
-        if ($res)
-            return $res;
-        else
-            throw new EntityNotFoundException("Aucun enregistrement trouvé !");
+        return $user;
     }
 }
