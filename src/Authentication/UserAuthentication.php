@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Authentication;
 
+use Authentication\Exception\AuthenticationException;
 use Entity\Exception\EntityNotFoundException;
 use Entity\User;
-use Authentication\Exception\AuthenticationException;
 
 class UserAuthentication
 {
@@ -15,26 +15,29 @@ class UserAuthentication
 
     public function loginForm(string $action, string $submitText = 'OK'): string
     {
-        $login = $this::LOGIN_INPUT_NAME;
-        $password = $this::PASSWORD_INPUT_NAME;
+        $login = self::LOGIN_INPUT_NAME;
+        $password = self::PASSWORD_INPUT_NAME;
 
         return <<<HTML
         <form method="POST" action="{$action}">
-            <input name="login" placeholder="{$login}"/>
-            <input name="paswword" type="password" placeholder="{$password}"/>
+            <input name="{$login}" required/>
+            <input name="{$password}" type="password" required/>
             <button type="submit">{$submitText}</button>
         </form>
 HTML;
     }
 
-    public function getUserFromAuth(): User{
-        $login = $this::LOGIN_INPUT_NAME;
-        $password = $this::PASSWORD_INPUT_NAME;
+    public function getUserFromAuth(): User
+    {
+        $login = $_POST[self::LOGIN_INPUT_NAME];
+        $password = $_POST[self::PASSWORD_INPUT_NAME];
 
         try {
-            return User::findByCredentials($login, $password);
-        }catch(EntityNotFoundException){
-            throw new AuthenticationException();
+            $user = User::findByCredentials($login, $password);
+        } catch (EntityNotFoundException) {
+            throw new AuthenticationException("Aucun utilisateur n'est trouvé !");
         }
+
+        return $user;
     }
 }
