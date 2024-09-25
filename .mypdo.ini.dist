@@ -1,4 +1,4 @@
 [mypdo]
-dsn = 'mysql:host=mysql;dbname=marc0237_authentication;charset=utf8'
+dsn = 'mysql:host=mysql;dbname=marc0237_authentification;charset=utf8'
 username = 'marc0237'
 password = '[mot de passe]'
