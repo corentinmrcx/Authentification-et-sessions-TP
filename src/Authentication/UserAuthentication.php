@@ -16,6 +16,7 @@ class UserAuthentication
     private const PASSWORD_INPUT_NAME = 'password';
     private const SESSION_KEY = '__UserAuthentication__';
     private const SESSION_USER_KEY = 'user';
+    private const LOGOUT_INPUT_NAME = 'logout';
     private ?User $user = null;
 
     public function loginForm(string $action, string $submitText = 'OK'): string
@@ -30,6 +31,26 @@ class UserAuthentication
             <button type="submit">{$submitText}</button>
         </form>
 HTML;
+    }
+
+    public function logoutForm(string $action, string $text): string{
+        $logout = self::LOGOUT_INPUT_NAME;
+
+        return <<<HTML
+        <form method="POST" action="{$action}">
+            <button type="submit" name="{$logout}">{$text}</button>
+        </form>
+HTML;
+    }
+
+    public function logoutIfRequested(): void{
+        try{
+            if (isset($_POST[self::LOGOUT_INPUT_NAME])) {
+                Session::start();
+                unset($_SESSION[self::SESSION_KEY][self::SESSION_USER_KEY]);
+            }
+        }catch (SessionException $e){
+        }
     }
 
     /**
@@ -62,11 +83,6 @@ HTML;
 
     public function isUserConnected(): bool{
         Session::start();
-        $res = false;
-        $session = $_SESSION[self::SESSION_KEY][self::SESSION_USER_KEY];
-        if (isset($session) && $session instanceof User){
-            $res = true;
-        }
-        return $res;
+        return isset($_SESSION[self::SESSION_KEY][self::SESSION_USER_KEY]) && $_SESSION[self::SESSION_KEY][self::SESSION_USER_KEY] instanceof User;
     }
 }
