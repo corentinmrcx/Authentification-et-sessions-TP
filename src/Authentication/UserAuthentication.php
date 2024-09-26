@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Authentication;
 
 use Authentication\Exception\AuthenticationException;
+use Authentication\Exception\NotLoggedInException;
 use Entity\Exception\EntityNotFoundException;
 use Entity\User;
 use Service\Exception\SessionException;
@@ -18,6 +19,24 @@ class UserAuthentication
     private const SESSION_USER_KEY = 'user';
     private const LOGOUT_INPUT_NAME = 'logout';
     private ?User $user = null;
+
+    public function __construct()
+    {
+        try {
+            $utilisateur = $this->getUserFromSession();
+            $this->user = $utilisateur;
+        } catch (NotLoggedInException) {
+        }
+    }
+
+    public function getUser(): User
+    {
+        if (!isset($this->user)) {
+            throw new NotLoggedInException();
+        }
+
+        return $this->user;
+    }
 
     public function loginForm(string $action, string $submitText = 'OK'): string
     {
@@ -50,6 +69,7 @@ HTML;
             if (isset($_POST[self::LOGOUT_INPUT_NAME])) {
                 Session::start();
                 unset($_SESSION[self::SESSION_KEY][self::SESSION_USER_KEY]);
+                unset($this->user);
             }
         } catch (SessionException $e) {
         }
@@ -91,15 +111,17 @@ HTML;
         return isset($_SESSION[self::SESSION_KEY][self::SESSION_USER_KEY]) && $_SESSION[self::SESSION_KEY][self::SESSION_USER_KEY] instanceof User;
     }
 
+    /**
+     * @throws SessionException
+     * @throws NotLoggedInException
+     */
     protected function getUserFromSession(): User
     {
         Session::start();
-        try {
-            if (isset($_SESSION[self::SESSION_KEY][self::SESSION_USER_KEY]) && $_SESSION[self::SESSION_KEY][self::SESSION_USER_KEY] instanceof User) {
-                return $_SESSION[self::SESSION_KEY][self::SESSION_USER_KEY];
-            }
-        } catch (SessionException $e) {
-            throw new NotLoggedInException('Aucun utilisateur dans la session !');
+        if (isset($_SESSION[self::SESSION_KEY][self::SESSION_USER_KEY])
+            && $_SESSION[self::SESSION_KEY][self::SESSION_USER_KEY] instanceof User) {
+            return $_SESSION[self::SESSION_KEY][self::SESSION_USER_KEY];
         }
+        throw new NotLoggedInException('Aucun utilisateur dans la session !');
     }
 }
