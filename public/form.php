@@ -20,10 +20,14 @@ $p->appendCSS(<<<CSS
     }
 CSS
 );
-$form = $authentication->loginForm('auth.php');
-if ($authentication->isUserConnected()){
-    // Le action doit etre en corrélation avec le fichier dans lequel on est.
+try{
+    $utilisateur = $authentication->getUser();
+    $profil_utilisateur = new \Html\UserProfile($utilisateur);
+    $p -> appendContent($profil_utilisateur->toHtml());
     $form = $authentication->logoutForm('form.php', "Deconnexion");
+}
+catch (\Authentication\Exception\NotLoggedInException $e){
+    $form = $authentication->loginForm('auth.php');
 }
 
 $p->appendContent(<<<HTML
